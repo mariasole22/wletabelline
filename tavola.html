@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Tavola Pitagorica Magica 🌟</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-principal: #fff5f7;
+            --border-cartoon: #2d3436;
+            --testo: #2d3436;
+            
+            /* Colori pastello allegri per le diverse tabelline (1-10) */
+            --color-1: #ff7675;
+            --color-2: #fab1a0;
+            --color-3: #ffeaa7;
+            --color-4: #55efc4;
+            --color-5: #81ecec;
+            --color-6: #74b9ff;
+            --color-7: #a29bfe;
+            --color-8: #fd79a8;
+            --color-9: #e84393;
+            --color-10: #ffeaa7;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Fredoka', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-principal);
+            color: var(--testo);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #d63031;
+            margin-bottom: 5px;
+            text-shadow: 3px 3px 0px #ffeaa7;
+            letter-spacing: -1px;
+        }
+
+        /* Schermo dell'operazione GIGANTE in alto */
+        .operazione-info {
+            background: white;
+            border: 5px solid var(--border-cartoon);
+            border-radius: 30px;
+            padding: 15px 30px;
+            display: inline-block;
+            min-width: 400px;
+            box-shadow: 0 10px 0px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            background-image: radial-gradient(#dfe6e9 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+
+        .operazione-testo {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--testo);
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .operazione-testo span {
+            color: #ff477e;
+            background: #fff0f3;
+            padding: 2px 15px;
+            border-radius: 15px;
+            border: 3px dashed #ff477e;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        /* Contenitore Griglia */
+        .griglia-scroll {
+            background: white;
+            padding: 20px;
+            border-radius: 40px;
+            border: 6px solid var(--border-cartoon);
+            box-shadow: 0 16px 0px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        /* CORREZIONE: 11 colonne perfette (La "×" + i numeri da 1 a 10) */
+        .pitagorica {
+            display: grid;
+            grid-template-columns: repeat(11, minmax(60px, 1fr));
+            gap: 6px;
+            min-width: 700px;
+        }
+
+        /* Stile base delle caselle */
+        .cella {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: #f9f9f9;
+            border: 3px solid #dfe6e9;
+            border-radius: 16px;
+            transition: all 0.1s ease;
+            user-select: none;
+        }
+
+        /* Casella speciale dell'incrocio (In alto a sinistra) */
+        .cella.moltiplicatore {
+            background: var(--border-cartoon);
+            color: white;
+            border-color: var(--border-cartoon);
+            font-size: 1.8rem;
+        }
+
+        /* Stile per le intestazioni di riga e colonna */
+        .cella.intestazione {
+            color: var(--testo);
+            border-width: 3px;
+            border-style: solid;
+            font-size: 1.4rem;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15);
+        }
+
+        /* Classi di colore per le tabelline */
+        .t-1 { background-color: var(--color-1); color: white; border-color: #c0392b; }
+        .t-2 { background-color: var(--color-2); border-color: #e67e22; }
+        .t-3 { background-color: var(--color-3); border-color: #f1c40f; }
+        .t-4 { background-color: var(--color-4); border-color: #27ae60; }
+        .t-5 { background-color: var(--color-5); border-color: #16a085; }
+        .t-6 { background-color: var(--color-6); color: white; border-color: #2980b9; }
+        .t-7 { background-color: var(--color-7); color: white; border-color: #8e44ad; }
+        .t-8 { background-color: var(--color-8); color: white; border-color: #db3a7b; }
+        .t-9 { background-color: var(--color-9); color: white; border-color: #b31e67; }
+        .t-10 { background-color: var(--color-10); border-color: #f39c12; }
+
+        /* Evidenziazione riga/colonna (Effetto mirino) */
+        .cella.attiva-riga-colonna {
+            background-color: #fff0f3;
+            border-color: #ffb3c1;
+        }
+
+        /* La casella esatta dell'incrocio */
+        .cella.incrocio-perfetto {
+            background-color: #ff477e !important;
+            color: white !important;
+            border-color: var(--border-cartoon) !important;
+            transform: scale(1.12);
+            z-index: 10;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tavola Pitagorica Magica ✨</h1>
+    
+    <div class="operazione-info">
+        <p class="operazione-testo" id="operazioneDisplay">Tocca una casella 🔎</p>
+    </div>
+
+    <div class="griglia-scroll">
+        <div class="pitagorica" id="tabellaPitagorica">
+            </div>
+    </div>
+</div>
+
+<script>
+    const tabella = document.getElementById('tabellaPitagorica');
+    const display = document.getElementById('operazioneDisplay');
+
+    // Generazione da 1 a 10 (Riga -1 e Colonna -1 sono le intestazioni)
+    for (let riga = -1; riga <= 10; riga++) {
+        if (riga === 0) continue; // Salta lo zero nella riga
+        
+        for (let colonna = -1; colonna <= 10; colonna++) {
+            if (colonna === 0) continue; // Salta lo zero nella colonna
+            
+            const cella = document.createElement('div');
+            cella.className = 'cella';
+
+            // Angolo in alto a sinistra (Incrocio dei comandi)
+            if (riga === -1 && colonna === -1) {
+                cella.innerText = '×';
+                cella.classList.add('moltiplicatore');
+            }
+            // Intestazione delle colonne (Numeri in alto)
+            else if (riga === -1) {
+                cella.innerText = colonna;
+                cella.classList.add('intestazione', `t-${colonna}`);
+                cella.dataset.tipo = 'head-col';
+                cella.dataset.c = colonna;
+            }
+            // Intestazione delle righe (Numeri a sinistra)
+            else if (colonna === -1) {
+                cella.innerText = riga;
+                cella.classList.add('intestazione', `t-${riga}`);
+                cella.dataset.tipo = 'head-row';
+                cella.dataset.r = riga;
+            }
+            // Celle dei prodotti interni
+            else {
+                cella.innerText = riga * colonna;
+                cella.dataset.r = riga;
+                cella.dataset.c = colonna;
+                cella.dataset.tipo = 'risultato';
+
+                // Eventi Mouse / LIM
+                cella.addEventListener('mouseenter', () => evidenzia(riga, colonna));
+                cella.addEventListener('mouseleave', pulisciEvidenziazione);
+                
+                // Eventi Touchscreen
+                cella.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    evidenzia(riga, colonna);
+                });
+            }
+
+            tabella.appendChild(cella);
+        }
+    }
+
+    function evidenzia(r, c) {
+        const celle = tabella.children;
+        
+        display.innerHTML = `${r} × ${c} = <span>${r * c}</span>`;
+
+        for (let i = 0; i < celle.length; i++) {
+            const cella = celle[i];
+            const cellaR = parseInt(cella.dataset.r);
+            const cellaC = parseInt(cella.dataset.c);
+
+            cella.classList.remove('attiva-riga-colonna', 'incrocio-perfetto');
+
+            if (cellaR === r && cellaC === c && cella.dataset.tipo === 'risultato') {
+                cella.classList.add('incrocio-perfetto');
+            } 
+            else if (cellaR === r || cellaC === c) {
+                cella.classList.add('attiva-riga-colonna');
+            }
+        }
+    }
+
+    function pulisciEvidenziazione() {
+        const celle = tabella.children;
+        display.innerText = 'Tocca una casella 🔎';
+        
+        for (let i = 0; i < celle.length; i++) {
+            celle[i].classList.remove('attiva-riga-colonna', 'incrocio-perfetto');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Memory delle Tabelline 🧠✨</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-game: #eef2f7;
+            --border-cartoon: #2d3436;
+            --testo: #2d3436;
+            --card-back: #ff477e;
+            --card-front: #74b9ff;
+            --correct: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Fredoka', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-game);
+            color: var(--testo);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #a29bfe;
+            text-shadow: 3px 3px 0px #fff;
+            margin-bottom: 10px;
+            -webkit-text-stroke: 2px var(--border-cartoon);
+        }
+
+        .card-panel {
+            background: white;
+            border: 6px solid var(--border-cartoon);
+            border-radius: 40px;
+            padding: 30px;
+            box-shadow: 0 16px 0px rgba(0,0,0,0.05);
+            margin-top: 20px;
+        }
+
+        /* Schermate */
+        .setup-screen { display: block; }
+        .game-screen { display: none; }
+        .result-screen { display: none; }
+
+        h2 {
+            font-size: 1.6rem; 
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #fd79a8;
+            -webkit-text-stroke: 1px var(--border-cartoon);
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .griglia-numeri {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 15px 0 25px 0;
+        }
+
+        .btn-tabellina {
+            background: #fff;
+            border: 3px solid var(--border-cartoon);
+            border-radius: 16px;
+            padding: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-tabellina.selected {
+            background: #ffec99;
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--border-cartoon);
+        }
+
+        /* Difficoltà */
+        .difficolta-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 15px 0 25px 0;
+        }
+
+        .btn-diff {
+            background: white;
+            border: 3px solid var(--border-cartoon);
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-diff span {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #636e72;
+            margin-top: 4px;
+        }
+
+        .btn-diff#facile.selected { background-color: #55efc4; transform: translateY(4px); box-shadow: 0 2px 0 var(--border-cartoon); color: white; }
+        .btn-diff#medio.selected { background-color: #ffcaa1; transform: translateY(4px); box-shadow: 0 2px 0 var(--border-cartoon); }
+        .btn-diff#difficile.selected { background-color: #ff7675; transform: translateY(4px); box-shadow: 0 2px 0 var(--border-cartoon); color: white; }
+        .btn-diff#facile.selected span, .btn-diff#difficile.selected span { color: white; }
+
+        .btn-start {
+            background: var(--correct);
+            color: white;
+            border: 4px solid var(--border-cartoon);
+            border-radius: 20px;
+            padding: 15px 40px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 0 var(--border-cartoon);
+        }
+
+        /* Schermata di Gioco */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .btn-esci {
+            background: #ffeaa7;
+            border: 2px solid var(--border-cartoon);
+            border-radius: 12px;
+            padding: 6px 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-esci:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--border-cartoon); }
+
+        /* GRIGLIA DINAMICA DEL MEMORY */
+        .griglia-memory {
+            display: grid;
+            gap: 15px;
+            margin: 20px auto;
+            perspective: 1000px;
+            max-width: 850px;
+        }
+
+        /* Allineamenti colonne richiesti */
+        .griglia-memory.facile { grid-template-columns: repeat(4, 1fr); }
+        .griglia-memory.medio { grid-template-columns: repeat(5, 1fr); }
+        .griglia-memory.difficile { grid-template-columns: repeat(6, 1fr); }
+
+        .memory-card {
+            aspect-ratio: 1.1;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.matched {
+            transform: rotateY(180deg);
+            opacity: 0.5;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border: 4px solid var(--border-cartoon);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.1);
+        }
+
+        .card-back {
+            background: var(--card-back);
+            color: white;
+            font-size: 2rem;
+        }
+
+        .card-front {
+            background: white;
+            color: var(--testo);
+            font-size: 1.5rem;
+            transform: rotateY(180deg);
+            padding: 5px;
+        }
+        
+        .card-front.operazione {
+            font-size: 1.3rem;
+            color: #2980b9;
+            background: #e3fafc;
+        }
+        
+        .card-front.risultato {
+            font-size: 1.7rem;
+            color: #27ae60;
+            background: #ebfbee;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Il Memory delle Tabelline 🧠✨</h1>
+
+    <div id="setupScreen" class="card-panel setup-screen">
+        <h2>1. Scegli le tabelline da includere:</h2>
+        <div class="griglia-numeri">
+            </div>
+
+        <h2>2. Scegli la difficoltà della griglia:</h2>
+        <div class="difficolta-container">
+            <button id="facile" class="btn-diff selected" onclick="selezionaDifficolta('facile', 6)">
+                Facile 😊
+                <span>Griglia 4×3 (6 Coppie - 12 Carte)</span>
+            </button>
+            <button id="medio" class="btn-diff" onclick="selezionaDifficolta('medio', 10)">
+                Medio 🤔
+                <span>Griglia 5×4 (10 Coppie - 20 Carte)</span>
+            </button>
+            <button id="difficile" class="btn-diff" onclick="selezionaDifficolta('difficile', 12)">
+                Difficile 🔥
+                <span>Griglia 6×4 (12 Coppie - 24 Carte)</span>
+            </button>
+        </div>
+
+        <button class="btn-start" onclick="iniziaGioco()">Si parte! 🚀</button>
+    </div>
+
+    <div id="gameScreen" class="card-panel game-screen">
+        <div class="info-bar">
+            <span id="infoCoppie">Coppie Trovate: 0 / 6</span>
+            <button class="btn-esci" onclick="confermaUscita()">🏠 Esci</button>
+        </div>
+
+        <div id="memoryGriglia" class="griglia-memory"></div>
+    </div>
+
+    <div id="resultScreen" class="card-panel result-screen">
+        <h2 style="font-size: 3rem; margin: 0;">Fantastico! 🏆</h2>
+        <p style="font-size: 1.6rem; font-weight: 600; margin: 20px 0;">Hai  trovato tutte le coppie e completato l'intera griglia!</p>
+        <button class="btn-start" onclick="tornaAlSetup()">Gioca Ancora 🔄</button>
+    </div>
+</div>
+
+<script>
+    let tabellineSelezionate = [];
+    let difficoltaScelta = 'facile';
+    let coppieNecessarie = 6;
+    let coppieTrovate = 0;
+    
+    let carteGirate = [];
+    let bloccoClick = false;
+
+    const grigliaNumeri = document.querySelector('.griglia-numeri');
+    for (let i = 1; i <= 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-tabellina';
+        btn.innerText = `×${i}`;
+        btn.onclick = () => {
+            btn.classList.toggle('selected');
+            if (tabellineSelezionate.includes(i)) {
+                tabellineSelezionate = tabellineSelezionate.filter(n => n !== i);
+            } else {
+                tabellineSelezionate.push(i);
+            }
+        };
+        grigliaNumeri.appendChild(btn);
+    }
+
+    function selezionaDifficolta(livello, numeroCoppie) {
+        difficoltaScelta = livello;
+        coppieNecessarie = numeroCoppie;
+        document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('selected'));
+        document.getElementById(livello).classList.add('selected');
+    }
+
+    function iniziaGioco() {
+        if (tabellineSelezionate.length === 0) {
+            alert("Scegli almeno una tabellina per iniziare!");
+            return;
+        }
+        coppieTrovate = 0;
+        carteGirate = [];
+        bloccoClick = false;
+
+        document.getElementById('setupScreen').style.display = 'none';
+        document.getElementById('resultScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+
+        document.getElementById('infoCoppie').innerText = `Coppie Trovate: 0 / ${coppieNecessarie}`;
+        preparaCarte();
+    }
+
+    function preparaCarte() {
+        let poolCoppie = [];
+        let contatoreCoppie = 0;
+        
+        // CORREZIONE: Generiamo l'esatto numero di coppie richieste (pari a metà delle carte)
+        while (contatoreCoppie < coppieNecessarie) {
+            const n1 = tabellineSelezionate[Math.floor(Math.random() * tabellineSelezionate.length)];
+            const n2 = Math.floor(Math.random() * 10) + 1;
+            const prodotto = n1 * n2;
+            const operazioneTesto = `${n1} × ${n2}`;
+
+            if (!poolCoppie.some(c => c.testo === operazioneTesto)) {
+                poolCoppie.push({
+                    idCoppia: contatoreCoppie,
+                    testo: operazioneTesto,
+                    tipo: 'operazione'
+                });
+                poolCoppie.push({
+                    idCoppia: contatoreCoppie,
+                    testo: prodotto.toString(),
+                    tipo: 'risultato'
+                });
+                contatoreCoppie++;
+            }
+        }
+
+        // Mescola il mazzo completo
+        poolCoppie.sort(() => Math.random() - 0.5);
+
+        const griglia = document.getElementById('memoryGriglia');
+        griglia.innerHTML = "";
+        griglia.className = `griglia-memory ${difficoltaScelta}`;
+
+        poolCoppie.forEach(datiCarta => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.idCoppia = datiCarta.idCoppia;
+
+            const back = document.createElement('div');
+            back.className = 'card-face card-back';
+            back.innerText = '❓';
+
+            const front = document.createElement('div');
+            front.className = `card-face card-front ${datiCarta.tipo}`;
+            front.innerText = datiCarta.testo;
+
+            card.appendChild(back);
+            card.appendChild(front);
+
+            card.addEventListener('click', () => giraCarta(card));
+            griglia.appendChild(card);
+        });
+    }
+
+    function giraCarta(card) {
+        if (bloccoClick) return;
+        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+        card.classList.add('flipped');
+        carteGirate.push(card);
+
+        if (carteGirate.length === 2) {
+            controllaAbbinamento();
+        }
+    }
+
+    function controllaAbbinamento() {
+        bloccoClick = true;
+        const [carta1, carta2] = carteGirate;
+
+        if (carta1.dataset.idCoppia === carta2.dataset.idCoppia) {
+            setTimeout(() => {
+                carta1.classList.add('matched');
+                carta2.classList.add('matched');
+                coppieTrovate++;
+                document.getElementById('infoCoppie').innerText = `Coppie Trovate: ${coppieTrovate} / ${coppieNecessarie}`;
+                
+                carteGirate = [];
+                bloccoClick = false;
+
+                confetti({ particleCount: 15, spread: 40, origin: { y: 0.6 } });
+
+                if (coppieTrovate === coppieNecessarie) {
+                    mostraVittoria();
+                }
+            }, 500);
+        } else {
+            setTimeout(() => {
+                carta1.classList.remove('flipped');
+                carta2.classList.remove('flipped');
+                carteGirate = [];
+                bloccoClick = false;
+            }, 1200);
+        }
+    }
+
+    function mostraVittoria() {
+        setTimeout(() => {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'block';
+            
+            let end = Date.now() + (3 * 1000);
+            (function frame() {
+              confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+              confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+              if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }, 600);
+    }
+
+    function confermaUscita() {
+        if (confirm("Vuoi abbandonare questa partita di Memory e tornare al menu iniziale?")) {
+            tornaAlSetup();
+        }
+    }
+
+    function tornaAlSetup() {
+        document.getElementById('resultScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('setupScreen').style.display = 'block';
+        
+        document.querySelectorAll('.btn-tabellina').forEach(b => b.classList.remove('selected'));
+        tabellineSelezionate = [];
+        selezionaDifficolta('facile', 6);
+    }
+</script>
+
+</body>
+</html>

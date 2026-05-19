@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completa la Tavola Pitagorica 🔢✨</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-game: #eef2f7;
+            --border-cartoon: #2d3436;
+            --testo: #2d3436;
+            --primary: #74b9ff;
+            --colore-incrocio: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Fredoka', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-game);
+            color: var(--testo);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #ff7675;
+            text-shadow: 3px 3px 0px #fff;
+            margin-bottom: 10px;
+            -webkit-text-stroke: 2px var(--border-cartoon);
+        }
+
+        .card-panel {
+            background: white;
+            border: 6px solid var(--border-cartoon);
+            border-radius: 40px;
+            padding: 25px;
+            box-shadow: 0 16px 0px rgba(0,0,0,0.05);
+            margin-top: 15px;
+        }
+
+        /* Schermate */
+        .setup-screen { display: block; }
+        .game-screen { display: none; }
+
+        /* Scelta Modalità */
+        .modalita-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .btn-mode {
+            background: white;
+            border: 4px solid var(--border-cartoon);
+            border-radius: 30px;
+            padding: 30px 20px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-mode:active {
+            transform: translateY(4px);
+            box-shadow: 0 6px 0 var(--border-cartoon);
+        }
+
+        .btn-mode span {
+            display: block;
+            font-size: 1rem;
+            font-weight: 400;
+            color: #636e72;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .btn-mode#modeLibera { border-color: #0984e3; color: #0984e3; }
+        .btn-mode#modeEstrattore { border-color: #e17055; color: #e17055; }
+
+        /* Barra Info */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .btn-esci {
+            background: #ffeaa7;
+            border: 2px solid var(--border-cartoon);
+            border-radius: 12px;
+            padding: 6px 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+        .btn-esci:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--border-cartoon); }
+
+        /* Box Grande Estrattore */
+        .estrattore-box {
+            display: none;
+            font-size: 2.6rem;
+            font-weight: 700;
+            background: #ffffff;
+            border: 5px solid var(--border-cartoon);
+            border-radius: 24px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 0 var(--border-cartoon);
+            animation: bounceIn 0.5s ease;
+        }
+
+        /* Box Feedback Didattico per Estrattore */
+        .feedback-estrattore {
+            display: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            border: 2px dashed transparent;
+        }
+        .feedback-estrattore.wrong-alert {
+            display: block;
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border-color: #ef4444;
+        }
+
+        /* STRUTTURA TAVOLA PITAGORICA */
+        .pitagora-wrapper {
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .tavola-grid {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            gap: 5px;
+            min-width: 650px;
+            margin: 0 auto;
+        }
+
+        .cella {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border: 2px solid var(--border-cartoon);
+            border-radius: 10px;
+            background: white;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        /* Intestazioni generali */
+        .cella.header-top {
+            color: var(--testo);
+            border-bottom-width: 4px;
+            font-size: 1.4rem;
+        }
+
+        .cella.header-left {
+            color: var(--testo);
+            border-right-width: 4px;
+            font-size: 1.4rem;
+        }
+
+        .cella.incrocio {
+            background: var(--colore-incrocio) !important;
+            color: white !important;
+            font-size: 1.6rem;
+        }
+
+        /* Input di inserimento dati */
+        .cella input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--testo);
+            padding: 0;
+            border-radius: 8px;
+        }
+
+        .cella input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: inset 0 0 0 3px var(--border-cartoon);
+        }
+
+        /* STILI DI VERIFICA (Solo Bordi e Testo, preservando la trasparenza di sfondo) */
+        .cella.esatta-libera {
+            border: 4px solid #15803d !important;
+        }
+        .cella.esatta-libera input {
+            color: #15803d !important;
+        }
+
+        .cella.errata-libera {
+            border: 4px solid #b91c1c !important;
+        }
+        .cella.errata-libera input {
+            color: #b91c1c !important;
+        }
+
+        /* Feedback Estrattore */
+        .cella.esatta-estrattore {
+            background-color: #2ecc71 !important;
+            color: white !important;
+            animation: popCard 0.3s ease;
+        }
+        
+        .cella.errata-estrattore {
+            background-color: #ff7675 !important;
+        }
+        .cella.errata-estrattore input {
+            color: white !important;
+        }
+
+        /* Pulsantiera inferiore */
+        .action-bar {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .btn-action {
+            border: 3px solid var(--border-cartoon);
+            border-radius: 16px;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+        .btn-action:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--border-cartoon); }
+
+        #btnVerifica { background: #2ecc71; color: white; }
+        #btnCancella { background: #dfe6e9; color: var(--testo); }
+
+        /* Nasconde le freccette dei numeri */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* Animazioni */
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.04); }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes popCard {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Completa la Tavola! 🔢✨</h1>
+
+    <div id="setupScreen" class="card-panel setup-screen">
+        <h2>Scegli come vuoi compilare la tavola pitagorica:</h2>
+        <div class="modalita-container">
+            <button id="modeLibera" class="btn-mode" onclick="avviaTavola('libera')">
+                📝 Modalità Libera
+                <span>Intestazioni colorate. Scrivi dove vuoi: le caselle si accendono di un colore tenue quando rispondi!</span>
+            </button>
+            <button id="modeEstrattore" class="btn-mode" onclick="avviaTavola('estrattore')">
+                🎯 L'Estrattore Senza Aiuti
+                <span>Intestazioni colorate ma griglia bianca. Trova l'incrocio corretto basandoti solo sui fattori!</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="card-panel game-screen">
+        <div class="info-bar">
+            <span id="infoModalitaTesto">Modalità: Libera</span>
+            <button class="btn-esci" onclick="confermaUscita()">🏠 Esci</button>
+        </div>
+
+        <div id="estrattoreBox" class="estrattore-box">
+            Trova la casella di: <span id="boxFattori"></span> = ?
+        </div>
+
+        <div id="feedbackEstrattore" class="feedback-estrattore"></div>
+
+        <div class="pitagora-wrapper">
+            <div id="tavolaPitagorica" class="tavola-grid"></div>
+        </div>
+
+        <div id="actionBar" class="action-bar">
+            <button id="btnVerifica" class="btn-action" onclick="verificaTavolaLibera()">Controlla Lavoro ✔</button>
+            <button id="btnCancella" class="btn-action" onclick="pulisciTavola()">Svuota Tutto 🧼</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let modalitaAttuale = 'libera';
+    let targetR = 0;
+    let targetC = 0;
+    let poolCaselleRimanenti = [];
+
+    // Tonalità accese per le caselle di Intestazione (1-10)
+    const coloriIntestazioni = {
+        1: '#ff7675',
+        2: '#fab1a0',
+        3: '#ffeaa7',
+        4: '#55efc4',
+        5: '#81ecec',
+        6: '#74b9ff',
+        7: '#a29bfe',
+        8: '#fd79a8',
+        9: '#e84393',
+        10: '#f6d66f'
+    };
+
+    // Tonalità ultra-chiare con trasparenza (RGBA) per lo sfondo delle risposte inserite (Modalità Libera)
+    const coloriTrasparentiCelle = {
+        1: 'rgba(255, 118, 117, 0.25)',
+        2: 'rgba(250, 177, 160, 0.25)',
+        3: 'rgba(255, 234, 167, 0.35)',
+        4: 'rgba(85, 239, 196, 0.25)',
+        5: 'rgba(129, 236, 236, 0.25)',
+        6: 'rgba(116, 185, 255, 0.25)',
+        7: 'rgba(162, 155, 254, 0.25)',
+        8: 'rgba(253, 121, 168, 0.25)',
+        9: 'rgba(232, 67, 147, 0.25)',
+        10: 'rgba(246, 214, 111, 0.35)'
+    };
+
+    function avviaTavola(tipo) {
+        modalitaAttuale = tipo;
+        document.getElementById('setupScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+
+        const infoTesto = document.getElementById('infoModalitaTesto');
+        const estrattore = document.getElementById('estrattoreBox');
+        const actionBar = document.getElementById('actionBar');
+        document.getElementById('feedbackEstrattore').className = "feedback-estrattore"; 
+
+        if (tipo === 'libera') {
+            infoTesto.innerText = "📝 Modalità: Compilazione Libera";
+            estrattore.style.display = "none";
+            actionBar.style.display = "flex";
+        } else {
+            infoTesto.innerText = "🎯 Modalità: Estrattore Automatico";
+            estrattore.style.display = "block";
+            actionBar.style.display = "none";
+        }
+
+        costruisciTavolaGrafica();
+
+        if (tipo === 'estrattore') {
+            preparaPoolEstrattore();
+            estraiNuovaMoltiplicazione();
+        }
+    }
+
+    function costruisciTavolaGrafica() {
+        const container = document.getElementById('tavolaPitagorica');
+        container.innerHTML = "";
+
+        for (let r = 0; r <= 10; r++) {
+            for (let c = 0; c <= 10; c++) {
+                const cella = document.createElement('div');
+                
+                // 1. Incrocio iniziale (0,0)
+                if (r === 0 && c === 0) {
+                    cella.className = "cella incrocio";
+                    cella.innerText = "×";
+                } 
+                // 2. Intestazione colonne in alto
+                else if (r === 0) {
+                    cella.className = "cella header-top";
+                    cella.innerText = c;
+                    if(coloriIntestazioni[c]) cella.style.backgroundColor = coloriIntestazioni[c];
+                } 
+                // 3. Intestazione righe a sinistra
+                else if (c === 0) {
+                    cella.className = "cella header-left";
+                    cella.innerText = r;
+                    if(coloriIntestazioni[r]) cella.style.backgroundColor = coloriIntestazioni[r];
+                } 
+                // 4. Celle di gioco interne
+                else {
+                    cella.className = "cella";
+                    cella.id = `cella_${r}_${c}`;
+                    cella.style.backgroundColor = '#ffffff'; // Iniziano sempre bianche pulite
+
+                    const input = document.createElement('input');
+                    input.type = "number";
+                    input.dataset.r = r;
+                    input.dataset.c = c;
+
+                    input.addEventListener('input', (e) => gestisciDigitazione(e.target, r, c));
+                    cella.appendChild(input);
+                }
+                
+                container.appendChild(cella);
+            }
+        }
+    }
+
+    function gestisciDigitazione(input, r, c) {
+        const cellaMadre = document.getElementById(`cella_${r}_${c}`);
+        
+        if (modalitaAttuale === 'libera') {
+            // Rimuove l'effetto di correzione se stanno modificando il testo
+            cellaMadre.classList.remove('esatta-libera', 'errata-libera');
+            
+            // AGGIUNTA EFFETTO TRASPARENZA: se la casella viene compilata, prende il colore tenue della sua riga
+            if (input.value !== "") {
+                if (coloriTrasparentiCelle[r]) {
+                    cellaMadre.style.backgroundColor = coloriTrasparentiCelle[r];
+                }
+            } else {
+                cellaMadre.style.backgroundColor = '#ffffff'; // Ritorna bianca se cancellano
+            }
+            return;
+        }
+
+        // --- LOGICA MODALITÀ ESTRATTORE ---
+        const valoreInserito = parseInt(input.value);
+        const prodottoTargetCorretto = targetR * targetC;
+
+        if (input.value.length < prodottoTargetCorretto.toString().length) {
+            return;
+        }
+
+        const msgBox = document.getElementById('feedbackEstrattore');
+
+        if (r === targetR && c === targetC && valoreInserito === prodottoTargetCorretto) {
+            msgBox.className = "feedback-estrattore"; 
+            cellaMadre.className = "cella esatta-estrattore";
+            cellaMadre.innerHTML = prodottoTargetCorretto; 
+
+            confetti({ particleCount: 20, spread: 40, origin: { y: 0.6 } });
+            poolCaselleRimanenti = poolCaselleRimanenti.filter(item => !(item.r === r && item.c === c));
+
+            setTimeout(() => {
+                if (poolCaselleRimanenti.length > 0) {
+                    estraiNuovaMoltiplicazione();
+                } else {
+                    vittoriaEstrattoreTotale();
+                }
+            }, 600);
+        } 
+        else {
+            cellaMadre.classList.add('errata-estrattore');
+            msgBox.className = "feedback-estrattore wrong-alert";
+            msgBox.innerText = `⚠️ Attenzione! La casella scelta o il risultato (${input.value}) non sono corretti per il target richiesto. Verificate bene l'incrocio delle tabelle sulla LIM!`;
+            
+            setTimeout(() => {
+                input.value = "";
+                cellaMadre.classList.remove('errata-estrattore');
+            }, 1200);
+        }
+    }
+
+    function preparaPoolEstrattore() {
+        poolCaselleRimanenti = [];
+        for (let r = 1; r <= 10; r++) {
+            for (let c = 1; c <= 10; c++) {
+                poolCaselleRimanenti.push({ r, c });
+            }
+        }
+    }
+
+    function estraiNuovaMoltiplicazione() {
+        const indiceCasuale = Math.floor(Math.random() * poolCaselleRimanenti.length);
+        const combinazione = poolCaselleRimanenti[indiceCasuale];
+
+        targetR = combinazione.r;
+        targetC = combinazione.c;
+
+        const boxFattori = document.getElementById('boxFattori');
+        // Visualizzazione fattori con lo stile cromatico delle intestazioni corrispondenti
+        boxFattori.innerHTML = `
+            <span style="color: ${coloriIntestazioni[targetR] || '#000'}; -webkit-text-stroke: 1px var(--border-cartoon);">${targetR}</span> 
+            × 
+            <span style="color: ${coloriIntestazioni[targetC] || '#000'}; -webkit-text-stroke: 1px var(--border-cartoon);">${targetC}</span>
+        `;
+    }
+
+    function verificaTavolaLibera() {
+        let errori = 0;
+        let compilate = 0;
+
+        for (let r = 1; r <= 10; r++) {
+            for (let c = 1; c <= 10; c++) {
+                const cella = document.getElementById(`cella_${r}_${c}`);
+                const input = cella.querySelector('input');
+                
+                if (input && input.value !== "") {
+                    compilate++;
+                    const valore = parseInt(input.value);
+                    const corretto = r * c;
+
+                    if (valore === corretto) {
+                        cella.classList.remove('errata-libera');
+                        cella.classList.add('esatta-libera');
+                    } else {
+                        cella.classList.remove('esatta-libera');
+                        cella.classList.add('errata-libera');
+                        errori++;
+                    }
+                }
+            }
+        }
+
+        if (compilate === 0) {
+            alert("La tavola è vuota! Compilate qualche casella prima di premere il controllo.");
+            return;
+        }
+
+        if (errori === 0 && compilate === 100) {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            alert("Spettacolare! Avete completato l'intera tavola pitagorica senza nemmeno un errore! 🏆🌟");
+        } else if (errori === 0) {
+            alert(`Tutte le ${compilate} risposte inserite finora sono corrette! Ottimo lavoro, continuate a completarla! 💪`);
+        } else {
+            alert(`Controllo completato: ci sono errori evidenziati con il bordo e il testo in rosso. Potete correggerli direttamente alla LIM! 💡`);
+        }
+    }
+
+    function victoriaEstrattoreTotale() {
+        document.getElementById('boxFattori').innerText = "COMPLETA!";
+        let end = Date.now() + (3 * 1000);
+        (function frame() {
+          confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
+          confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+
+        setTimeout(() => {
+            alert("Incredibile! Avete riempito tutti gli incroci casuali dell'estrattore! Siete i re delle tabelline! ⚡🏆");
+            tornaAlSetup();
+        }, 500);
+    }
+
+    function pulisciTavola() {
+        if (confirm("Vuoi azzerare tutte le risposte scritte per ricominciare da capo?")) {
+            costruisciTavolaGrafica();
+            document.getElementById('feedbackEstrattore').className = "feedback-estrattore";
+        }
+    }
+
+    function confermaUscita() {
+        if (confirm("Vuoi chiudere questa modalità e tornare al menu iniziale della tavola?")) {
+            tornaAlSetup();
+        }
+    }
+
+    function tornaAlSetup() {
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('setupScreen').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

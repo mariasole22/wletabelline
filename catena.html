@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reazione a Catena! ⚡⏳</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-game: #eef2f7;
+            --border-cartoon: #2d3436;
+            --testo: #2d3436;
+            --primary: #a29bfe;
+            --correct: #2ecc71;
+            --wrong: #e74c3c;
+            --accento: #fdcb6e;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Fredoka', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-game);
+            color: var(--testo);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #e84393;
+            text-shadow: 3px 3px 0px #fff;
+            margin-bottom: 10px;
+            -webkit-text-stroke: 2px var(--border-cartoon);
+        }
+
+        .card {
+            background: white;
+            border: 6px solid var(--border-cartoon);
+            border-radius: 40px;
+            padding: 30px;
+            box-shadow: 0 16px 0px rgba(0,0,0,0.05);
+            margin-top: 20px;
+        }
+
+        /* Schermate */
+        .setup-screen { display: block; }
+        .game-screen { display: none; }
+        .result-screen { display: none; }
+
+        h2 {
+            font-size: 1.6rem; 
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #00cec9;
+            -webkit-text-stroke: 1px var(--border-cartoon);
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .griglia-numeri {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 15px 0 25px 0;
+        }
+
+        .btn-tabellina {
+            background: #fff;
+            border: 3px solid var(--border-cartoon);
+            border-radius: 16px;
+            padding: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-tabellina.selected {
+            background: #ffec99;
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--border-cartoon);
+        }
+
+        /* Configurazione Difficoltà */
+        .difficolta-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 15px 0 25px 0;
+        }
+
+        .btn-diff {
+            background: white;
+            border: 3px solid var(--border-cartoon);
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-diff span {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #636e72;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+
+        .btn-diff#facile.selected { background-color: #55efc4; transform: translateY(4px); box-shadow: 0 2px 0 var(--border-cartoon); color: white; }
+        .btn-diff#medio.selected { background-color: #ffcaa1; transform: translateY(4px); box-shadow: 0 2px 0 var(--border-cartoon); }
+        .btn-diff#difficile.selected { background-color: #ff7675; transform: translateY(4px); box-shadow: 0 2px 0 var(--border-cartoon); color: white; }
+        .btn-diff#facile.selected span, .btn-diff#difficile.selected span { color: white; }
+
+        .btn-start {
+            background: var(--correct);
+            color: white;
+            border: 4px solid var(--border-cartoon);
+            border-radius: 20px;
+            padding: 15px 40px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 0 var(--border-cartoon);
+            margin-top: 10px;
+        }
+
+        /* Schermata di Gioco */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .btn-esci {
+            background: #ffeaa7;
+            border: 2px solid var(--border-cartoon);
+            border-radius: 12px;
+            padding: 6px 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+        .btn-esci:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--border-cartoon); }
+
+        /* Barra del tempo progressiva */
+        .timer-container {
+            width: 100%;
+            background: #dfe6e9;
+            border: 3px solid var(--border-cartoon);
+            border-radius: 20px;
+            height: 24px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffeaa7, #ff7675);
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+
+        /* Visualizzazione degli anelli della catena superati */
+        .catena-visualizer {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .anello {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-cartoon);
+            border-radius: 50%;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .anello.attivo {
+            background: var(--accento);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(253, 203, 110, 0.6);
+        }
+
+        .anello.superato {
+            background: var(--correct);
+        }
+
+        .operazione-box {
+            font-size: 4.5rem;
+            font-weight: 700;
+            background: #f8f9fa;
+            border: 4px dashed #ced4da;
+            border-radius: 24px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .griglia-opzioni {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .btn-opzione {
+            background: white;
+            border: 4px solid var(--border-cartoon);
+            border-radius: 24px;
+            padding: 20px;
+            font-size: 2.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 0 var(--border-cartoon);
+            transition: all 0.1s;
+        }
+
+        .btn-opzione:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 var(--border-cartoon);
+        }
+
+        .btn-opzione.esatto {
+            background: var(--correct) !important;
+            color: white !important;
+            box-shadow: 0 4px 0 #1e7e34 !important;
+        }
+
+        .btn-opzione.errato {
+            background: var(--wrong) !important;
+            color: white !important;
+            box-shadow: 0 4px 0 #bd2130 !important;
+        }
+
+        /* Schermata di fine */
+        .status-icon {
+            font-size: 5rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Reazione a Catena! ⚡⏳</h1>
+
+    <div id="setupScreen" class="card setup-screen">
+        <h2>1. Scegli le tabelline:</h2>
+        <div class="griglia-numeri">
+            </div>
+
+        <h2>2. Scegli il livello della sfida:</h2>
+        <div class="difficolta-container">
+            <button id="facile" class="btn-diff selected" onclick="selezionaDifficolta('facile', 15, 8, 4)">
+                Facile 😊
+                <span>Tempo: 15s<br>Catena: 8 risposte<br>Bonus: +4s</span>
+            </button>
+            <button id="medio" class="btn-diff" onclick="selezionaDifficolta('medio', 12, 12, 3)">
+                Medio 🤔
+                <span>Tempo: 12s<br>Catena: 12 risposte<br>Bonus: +3s</span>
+            </button>
+            <button id="difficile" class="btn-diff" onclick="selezionaDifficolta('difficile', 10, 16, 2)">
+                Difficile 🔥
+                <span>Tempo: 10s<br>Catena: 16 risposte<br>Bonus: +2s</span>
+            </button>
+        </div>
+
+        <button class="btn-start" onclick="iniziaGioco()">Inizia la Reazione! 🚀</button>
+    </div>
+
+    <div id="gameScreen" class="card game-screen">
+        <div class="info-bar">
+            <span id="infoTempoTesto">Tempo: 15.0s</span>
+            <span id="infoCatenaTesto">Catena: 0 / 8</span>
+            <button class="btn-esci" onclick="confermaUscita()">🏠 Esci</button>
+        </div>
+
+        <div class="timer-container">
+            <div id="timerBarra" class="timer-bar"></div>
+        </div>
+
+        <div id="catenaVisualizer" class="catena-visualizer"></div>
+
+        <div class="operazione-box" id="operazioneTesto"></div>
+
+        <div class="griglia-opzioni" id="opzioniContainer"></div>
+    </div>
+
+    <div id="resultScreen" class="card result-screen">
+        <div id="risultatoIcona" class="status-icon">🏆</div>
+        <h2 id="risultatoTitolo" style="font-size: 3rem; margin: 0;">Catena Completata!</h2>
+        <p id="risultatoDettaglio" style="font-size: 1.6rem; font-weight: 600; margin: 20px 0;"></p>
+        <button class="btn-start" onclick="tornaAlSetup()">Gioca Ancora 🔄</button>
+    </div>
+</div>
+
+<script>
+    // Configurazioni di Gioco (Modificabili dinamicamente)
+    let tabellineSelezionate = [];
+    let difficoltaScelta = 'facile';
+    
+    let tempoMassimo = 15;      // Durata massima iniziale e tetto limite
+    let tempoRimanente = 15;
+    let risposteRichieste = 8;   // Quante scelte per completare la catena
+    let risposteCorretteAttuali = 0;
+    let tempoBonus = 4;        // Secondi aggiunti per risposta esatta
+
+    let loopTimer = null;
+    let quesitoAttuale = { rispostaEsatta: 0 };
+    let giocoInCorso = false;
+
+    // Generazione bottoni delle tabelline (1-10)
+    const grigliaNumeri = document.querySelector('.griglia-numeri');
+    for (let i = 1; i <= 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-tabellina';
+        btn.innerText = `×${i}`;
+        btn.onclick = () => {
+            btn.classList.toggle('selected');
+            if (tabellineSelezionate.includes(i)) {
+                tabellineSelezionate = tabellineSelezionate.filter(n => n !== i);
+            } else {
+                tabellineSelezionate.push(i);
+            }
+        };
+        grigliaNumeri.appendChild(btn);
+    }
+
+    function selezionaDifficolta(livello, tempoIniziale, scelteTotali, bonus) {
+        difficoltaScelta = livello;
+        tempoMassimo = tempoIniziale;
+        risposteRichieste = scelteTotali;
+        tempoBonus = bonus;
+        
+        document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('selected'));
+        document.getElementById(livello).classList.add('selected');
+    }
+
+    function iniziaGioco() {
+        if (tabellineSelezionate.length === 0) {
+            alert("Seleziona almeno una tabellina prima di iniziare!");
+            return;
+        }
+
+        risposteCorretteAttuali = 0;
+        tempoRimanente = tempoMassimo;
+        giocoInCorso = true;
+
+        document.getElementById('setupScreen').style.display = 'none';
+        document.getElementById('resultScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+
+        // Disegna visivamente i pallini vuoti della catena
+        disegnaAnelliCatena();
+        generaDomandaCatena();
+        
+        // Avvia il timer di precisione (aggiornamento ogni 100ms per fluidità)
+        clearInterval(loopTimer);
+        loopTimer = setInterval(aggiornaTimer, 100);
+    }
+
+    function disegnaAnelliCatena() {
+        const visualizer = document.getElementById('catenaVisualizer');
+        visualizer.innerHTML = "";
+        for (let i = 0; i < risposteRichieste; i++) {
+            const anello = document.createElement('div');
+            anello.className = 'anello';
+            if (i === 0) anello.classList.add('attivo');
+            visualizer.appendChild(anello);
+        }
+        aggiornaTestiInterfaccia();
+    }
+
+    function aggiornaTestiInterfaccia() {
+        document.getElementById('infoTempoTesto').innerText = `Tempo: ${tempoRimanente.toFixed(1)}s`;
+        document.getElementById('infoCatenaTesto').innerText = `Catena: ${risposteCorretteAttuali} / ${risposteRichieste}`;
+    }
+
+    function aggiornaTimer() {
+        if (!giocoInCorso) return;
+
+        tempoRimanente -= 0.1;
+        if (tempoRimanente <= 0) {
+            tempoRimanente = 0;
+            aggiornaTestiInterfaccia();
+            document.getElementById('timerBarra').style.width = `0%`;
+            fineGioco(false); // Sconfitta per tempo scaduto
+            return;
+        }
+
+        aggiornaTestiInterfaccia();
+        // Calcola la percentuale per riempire la barra
+        const percentualeBarra = (tempoRimanente / tempoMassimo) * 100;
+        document.getElementById('timerBarra').style.width = `${Math.min(percentualeBarra, 100)}%`;
+    }
+
+    function generaDomandaCatena() {
+        // Aggiorna lo stato visivo degli anelli della catena
+        const anelli = document.querySelectorAll('.anello');
+        anelli.forEach((anello, indice) => {
+            anello.classList.remove('attivo', 'superato');
+            if (indice < risposteCorretteAttuali) {
+                anello.classList.add('superato');
+            } else if (indice === risposteCorretteAttuali) {
+                anello.classList.add('attivo');
+            }
+        });
+
+        const n1 = tabellineSelezionate[Math.floor(Math.random() * tabellineSelezionate.length)];
+        const n2 = Math.floor(Math.random() * 10) + 1;
+        const rispostaEsatta = n1 * n2;
+
+        quesitoAttuale = { n1, n2, rispostaEsatta };
+
+        document.getElementById('operazioneTesto').innerText = `${n1} × ${n2} = ?`;
+
+        // Generazione delle 4 opzioni di risposta
+        const opzioniSet = new Set([rispostaEsatta]);
+        while (opzioniSet.size < 4) {
+            const sfasamento = Math.floor(Math.random() * 7) - 3; // scostamenti vicini (-3 a +3)
+            const alternativa = Math.max(1, rispostaEsatta + sfasamento);
+            opzioniSet.add(alternativa);
+        }
+
+        const opzioniArray = Array.from(opzioniSet).sort(() => Math.random() - 0.5);
+
+        const container = document.getElementById('opzioniContainer');
+        container.innerHTML = "";
+
+        opzioniArray.forEach(valore => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-opzione';
+            btn.innerText = valeur = valore;
+            btn.onclick = () => controllaRispostaCatena(valore, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function controllaRispostaCatena(valoreScelto, bottoneCliccato) {
+        // Blocca temporaneamente i pulsanti
+        const bottoni = document.querySelectorAll('.btn-opzione');
+        bottoni.forEach(b => b.removeAttribute('onclick'));
+
+        if (valoreScelto === quesitoAttuale.rispostaEsatta) {
+            bottoneCliccato.classList.add('esatto');
+            risposteCorretteAttuali++;
+
+            // Aggiungi il bonus tempo senza superare però il tempo massimo iniziale di partenza
+            tempoRimanente = Math.min(tempoRimanente + tempoBonus, tempoMassimo);
+            
+            // Suono/Coriandolo immediato tattile
+            confetti({ particleCount: 15, spread: 30, origin: { y: 0.7 } });
+
+            setTimeout(() => {
+                if (risposteCorretteAttuali === risposteRichieste) {
+                    fineGioco(true); // Vittoria: catena completata!
+                } else {
+                    generaDomandaCatena();
+                }
+            }, 400);
+
+        } else {
+            // ERRORE: La catena si spezza, rosso immediato e fine gioco
+            bottoneCliccato.classList.add('errato');
+            
+            // Mostra qual era quella giusta
+            bottoni.forEach(b => {
+                if (parseInt(b.innerText) === quesitoAttuale.rispostaEsatta) {
+                    b.classList.add('esatto');
+                }
+            });
+
+            setTimeout(() => {
+                fineGioco(false); // Sconfitta per errore logico
+            }, 1000);
+        }
+    }
+
+    function fineGioco(vittoria) {
+        giocoInCorso = false;
+        clearInterval(loopTimer);
+
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('resultScreen').style.display = 'block';
+
+        const icona = document.getElementById('risultatoIcona');
+        const titolo = document.getElementById('risultatoTitolo');
+        const dettaglio = document.getElementById('risultatoDettaglio');
+
+        if (vittoria) {
+            icona.innerText = "⚡🏆🎉";
+            titolo.innerText = "Catena Chiusa!";
+            dettaglio.innerText = `Straordinario! Hai risposto a tutte e ${risposteRichieste} le domande prima che il tempo finisse!`;
+            
+            // Splendida esplosione di coriandoli continua per la vittoria totale
+            let end = Date.now() + (3 * 1000);
+            (function frame() {
+              confetti({ particleCount: 6, angle: 60, spread: 60, origin: { x: 0 } });
+              confetti({ particleCount: 6, angle: 120, spread: 60, origin: { x: 1 } });
+              if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        } else {
+            icona.innerText = "💥⏳";
+            titolo.innerText = "La catena si è rotta!";
+            dettaglio.innerText = `Siete arrivati a ${risposteCorretteAttuali} risposte consecutive su ${risposteRichieste}. Ottimo allenamento, riproviamo?`;
+        }
+    }
+
+    function confermaUscita() {
+        if (confirm("Vuoi fermare il timer e uscire dal gioco?")) {
+            giocoInCorso = false;
+            clearInterval(loopTimer);
+            tornaAlSetup();
+        }
+    }
+
+    function tornaAlSetup() {
+        document.getElementById('resultScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('setupScreen').style.display = 'block';
+
+        document.querySelectorAll('.btn-tabellina').forEach(b => b.classList.remove('selected'));
+        tabellineSelezionate = [];
+        
+        // Ripristina la selezione iniziale predefinita su Facile
+        selezionaDifficolta('facile', 15, 8, 4);
+    }
+</script>
+
+</body>
+</html>
