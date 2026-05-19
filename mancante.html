@@ -260,8 +260,7 @@
 
     <div id="setupScreen" class="card setup-screen">
         <h2>1. Scegli le tabelline:</h2>
-        <div class="griglia-numeri">
-            </div>
+        <div class="griglia-numeri"></div>
 
         <h2>2. Scegli la difficoltà:</h2>
         <div class="difficolta-container">
@@ -372,18 +371,43 @@
         }
 
         const opzioniSet = new Set([rispostaEsatta]);
-        while (opzioniSet.size < 4) {
-            let sfasamento = 0;
-            if (difficoltaScelta === 'facile') {
-                sfasamento = Math.floor(Math.random() * 15) - 7; 
-            } else if (difficoltaScelta === 'medio') {
-                sfasamento = Math.floor(Math.random() * 5) - 2;
+        
+        // NUOVA LOGICA DETERMINISTICA PER EVITARE LOOP
+        if (difficoltaScelta === 'difficile') {
+            if (rispostaEsatta === 1) {
+                opzioniSet.add(2).add(3).add(4);
+            } else if (rispostaEsatta === 2) {
+                opzioniSet.add(1).add(3).add(4);
+            } else if (rispostaEsatta === 10) {
+                opzioniSet.add(9).add(8).add(7);
+            } else if (rispostaEsatta === 9) {
+                opzioniSet.add(10).add(8).add(7);
             } else {
-                sfasamento = Math.random() > 0.5 ? 1 : -1;
+                opzioniSet.add(rispostaEsatta - 1);
+                opzioniSet.add(rispostaEsatta + 1);
+                opzioniSet.add(rispostaEsatta + 2);
+            }
+        } else {
+            let tentativi = 0;
+            while (opzioniSet.size < 4 && tentativi < 100) {
+                tentativi++;
+                let sfasamento = 0;
+                if (difficoltaScelta === 'facile') {
+                    sfasamento = Math.floor(Math.random() * 15) - 7; 
+                } else if (difficoltaScelta === 'medio') {
+                    sfasamento = Math.floor(Math.random() * 5) - 2;
+                }
+                
+                const alternativa = Math.max(1, Math.min(10, rispostaEsatta + sfasamento));
+                opzioniSet.add(alternativa);
             }
             
-            const alternativa = Math.max(1, Math.min(10, rispostaEsatta + sfasamento));
-            opzioniSet.add(alternativa);
+            if (opzioniSet.size < 4) {
+                for (let i = 1; i <= 10; i++) {
+                    opzioniSet.add(i);
+                    if (opzioniSet.size === 4) break;
+                }
+            }
         }
 
         const opzioniArray = Array.from(opzioniSet).sort(() => Math.random() - 0.5);
